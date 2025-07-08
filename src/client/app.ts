@@ -1,4 +1,10 @@
-import { ActivityType, GatewayIntentBits, Options, Partials, Sweepers } from "discord.js";
+import {
+  ActivityType,
+  GatewayIntentBits,
+  Options,
+  Partials,
+  Sweepers,
+} from "discord.js";
 import { ShardingClient } from "status-sharding";
 import { Env } from "utils/env";
 import { Handler } from "utils/handler";
@@ -11,7 +17,7 @@ const client = new ShardingClient({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
   ],
   partials: [Partials.Message],
   makeCache: Options.cacheWithLimits({
@@ -34,7 +40,7 @@ const client = new ShardingClient({
     ReactionUserManager: 0,
     StageInstanceManager: 0,
     ThreadMemberManager: 0,
-    VoiceStateManager: 0
+    VoiceStateManager: 0,
   }),
   sweepers: {
     ...Options.DefaultSweeperSettings,
@@ -42,29 +48,39 @@ const client = new ShardingClient({
       interval: 300,
       filter: Sweepers.filterByLifetime({
         lifetime: 300,
-        excludeFromSweep: (member): boolean => member.id !== client.user?.id
-      })
+        excludeFromSweep: (member): boolean => member.id !== client.user?.id,
+      }),
     },
     messages: {
       interval: 3600,
       filter: Sweepers.filterByLifetime({
-        lifetime: 3600
-      })
-    }
+        lifetime: 3600,
+      }),
+    },
   },
   allowedMentions: { parse: [] },
-  presence: { status: "online", activities: [{ name: "Canary version of Komono.", type: ActivityType.Custom }] }
+  presence: {
+    status: "online",
+    activities: [
+      { name: "Canary version of Komono.", type: ActivityType.Custom },
+    ],
+  },
 });
 
 const token = Env.Required("token").ToString();
 const now = Date.now();
 
 process.on("uncaughtException", (error) => {
+  console.error(error);
   Log.Write(`Uncaught Exception: ${error}`, "red");
 });
 
 process.on("unhandledRejection", (reason, promise) => {
-  Log.Write(`Unhandled Rejection at: ${promise} with the reason: ${reason}`, "red");
+  console.error(reason);
+  Log.Write(
+    `Unhandled Rejection at: ${promise} with the reason: ${reason}`,
+    "red"
+  );
 });
 
 process.on("warning", (warning) => {
@@ -85,14 +101,19 @@ await Handler.Initialize({
   events: `${__dirname}/events`,
   slashes: `${__dirname}/commands/slash`,
   prefixes: `${__dirname}/commands/prefix`,
-  components: `${__dirname}/components`
+  // components: `${__dirname}/components`,
 });
 
 Handler.Events.Bind(client);
 await Handler.Slashes.Bind(client);
 
 client.once("ready", (client) => {
-  Log.Write(`${client.user!.username} is ready! Application startup took: ${Utils.Format(Date.now() - now)}.`, "cyan");
+  Log.Write(
+    `${
+      client.user!.username
+    } is ready! Application startup took: ${Utils.Format(Date.now() - now)}.`,
+    "cyan"
+  );
 });
 
 await client.login(token);
